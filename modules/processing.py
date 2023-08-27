@@ -14,6 +14,7 @@ import random
 import cv2
 from skimage import exposure
 from typing import Any
+from packaging import version
 
 import modules.sd_hijack
 from modules import devices, prompt_parser, masking, sd_samplers, lowvram, generation_parameters_copypaste, extra_networks, sd_vae_approx, scripts, sd_samplers_common, sd_unet, errors, rng
@@ -597,8 +598,16 @@ def decode_latent_batch(model, batch, target_device=None, check_for_nans=False):
             try:
                 devices.test_for_nans(sample, "vae")
             except devices.NansException as e:
-                if devices.dtype_vae == torch.float32 or not shared.opts.auto_vae_precision:
-                    raise e
+                if devices.dtype_vae == torch.float16 and version.parse(torch.__version__) >= version.parse('2.1') and torch.cuda.is_bf16_supported():
+                    print('\nA tensor with all NaNs was produced in VAE, try converting to bf16.')
+                    devices.dtype_vae = torch.bfloat16
+                    vae_file, vae_source = sd_vae.resolve_vae(p.sd_model.sd_model_checkpoint)
+                    sd_vae.load_vae(p.sd_model, vae_file, vae_source)
+                    sample = decode_first_stage(model, batch[i:i + 1])[0]
+                    devices.test_for_nans(sample, "vae")
+                else:
+                    if devices.dtype_vae == torch.float32 or not shared.opts.auto_vae_precision:
+                        raise e
 
                 errors.print_error_explanation(
                     "A tensor with all NaNs was produced in VAE.\n"
