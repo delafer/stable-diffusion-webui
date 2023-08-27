@@ -361,6 +361,9 @@ def prepare_environment():
         run_pip(f"install {clip_package}", "clip")
         startup_timer.record("install clip")
 
+    if not is_installed("gfpgan"):
+        run_pip(f"install {gfpgan_package}", "gfpgan")
+
     if not is_installed("open_clip"):
         run_pip(f"install {openclip_package}", "open_clip")
         startup_timer.record("install open_clip")
