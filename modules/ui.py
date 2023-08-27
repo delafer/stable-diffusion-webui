@@ -1049,6 +1049,13 @@ def create_ui():
                     with FormRow():
                         embedding_learn_rate = gr.Textbox(label='Embedding Learning rate', placeholder="Embedding Learning rate", value="0.005", elem_id="train_embedding_learn_rate")
                         hypernetwork_learn_rate = gr.Textbox(label='Hypernetwork Learning rate', placeholder="Hypernetwork Learning rate", value="0.00001", elem_id="train_hypernetwork_learn_rate")
+                        use_beta_scheduler_checkbox = gr.Checkbox(label='Show advanced learn rate scheduler options(for Hypernetworks)')
+
+                    with FormRow(visible=False) as beta_scheduler_options:
+                        use_beta_scheduler = gr.Checkbox(label='Uses CosineAnnealingWarmRestarts Scheduler')
+                        beta_repeat_epoch = gr.Textbox(label='Epoch for cycle', placeholder="Cycles every nth epoch", value="4000")
+                        min_lr = gr.Textbox(label='Minimum learning rate for beta scheduler', placeholder="restricts decay value, but does not restrict gamma rate decay", value="1e-7")
+                        gamma_rate = gr.Textbox(label='Separate learning rate decay for ExponentialLR', placeholder="Value should be in (0-1]", value="1")
 
                     with FormRow():
                         clip_grad_mode = gr.Dropdown(value="disabled", label="Gradient Clipping", choices=["disabled", "value", "norm"])
@@ -1088,6 +1095,12 @@ def create_ui():
                         train_embedding = gr.Button(value="Train Embedding", variant='primary', elem_id="train_train_embedding")
                         interrupt_training = gr.Button(value="Interrupt", elem_id="train_interrupt_training")
                         train_hypernetwork = gr.Button(value="Train Hypernetwork", variant='primary', elem_id="train_train_hypernetwork")
+
+                    use_beta_scheduler_checkbox.change(
+                        fn=lambda show: gr_show(show),
+                        inputs=[use_beta_scheduler_checkbox],
+                        outputs=[beta_scheduler_options],
+                    )
 
                 params = script_callbacks.UiTrainTabParams(txt2img_preview_params)
 
@@ -1197,6 +1210,10 @@ def create_ui():
                 save_image_with_stored_embedding,
                 preview_from_txt2img,
                 *txt2img_preview_params,
+                use_beta_scheduler,
+                beta_repeat_epoch,
+                min_lr,
+                gamma_rate
             ],
             outputs=[
                 ti_output,
