@@ -19,6 +19,10 @@ div.gradio-image button[aria-label="Edit"] {
 
 }
 
+:root:has(> .dark), .dark {
+    color-scheme: dark;
+}
+
 .block.padded:not(.gradio-accordion) {
     padding: 0 !important;
 }
@@ -34,6 +38,9 @@ div.gradio-container{
 .compact{
     background: transparent !important;
     padding: 0 !important;
+}
+.compact > *, .compact .box {
+    border-radius: inherit !important;
 }
 
 div.form{
@@ -54,11 +61,27 @@ div.form{
 .block.gradio-colorpicker {
     border-width: 0 !important;
     box-shadow: none !important;
+
+    /* gradio 3.39 puts a lot of overflow: hidden all over the place for an unknown reason. */
+    overflow: visible !important;
+}
+div.gradio-group:not([id$=_container]) {
+    overflow: visible !important;
 }
 
 div.gradio-group, div.styler{
     border-width: 0 !important;
     background: none;
+}
+/* button/radio groups broken in gradio 3.37 */
+div.styler {
+    --block-radius: inherit !important;
+    --block-border-width: inherit !important;
+    --layout-gap: inherit !important;
+    --form-gap-width: inherit !important;
+    --button-border-width: inherit !important;
+    --button-large-radius: inherit !important;
+    --button-small-radius: inherit !important;
 }
 .gap.compact{
     padding: 0;
@@ -135,9 +158,26 @@ div.gradio-html.min{
     background: var(--input-background-fill);
 }
 
-.gradio-container .prose a, .gradio-container .prose a:visited{
-    color: unset;
+.gradio-container .prose a {
     text-decoration: none;
+}
+.gradio-container .prose a,
+.gradio-container .prose a:visited {
+    color: var(--body-text-color);
+}
+.gradio-container .prose a:hover {
+    color: var(--link-text-color-hover);
+}
+.gradio-container .prose a:active {
+    color: var(--link-text-color-active);
+}
+
+div.styler > .gradio-gallery:not(.absolute) {
+    border-width: 0 !important;
+}
+
+.gradio-row {
+    row-gap: inherit !important;
 }
 
 a{
@@ -145,9 +185,8 @@ a{
     cursor: pointer;
 }
 
-/* gradio 3.39 puts a lot of overflow: hidden all over the place for an unknown reason. */
-div.gradio-container, .block.gradio-textbox, div.gradio-group, div.gradio-dropdown{
-    overflow: visible !important;
+.gradio-container .prose * {
+    --body-text-color: 'inherit';
 }
 
 /* align-items isn't enough and elements may overflow in Safari. */
@@ -157,14 +196,20 @@ div.gradio-container, .block.gradio-textbox, div.gradio-group, div.gradio-dropdo
 
 
 /* general styled components */
+:root {
+    --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", EmojiSymbols, "EmojiOne Mozilla", "Twemoji Mozilla", "Segoe UI Symbol", emoji, var(--font);
+    --button-tool-size: calc(var(--input-text-size) * var(--line-sm) + var(--spacing-xl) * 2 + var(--button-border-width) * 2);
+}
 
 .gradio-button.tool{
-    max-width: 2.2em;
-    min-width: 2.2em !important;
-    height: 2.4em;
+    font-size: 20px;
+    font-family: var(--font-emoji);
+    padding: 0;
+    min-width: var(--button-tool-size) !important;
+    max-width: var(--button-tool-size);
+    height: var(--button-tool-size);
     align-self: end;
-    line-height: 1em;
-    border-radius: 0.5em;
+    border-radius: var(--button-large-radius);
 }
 
 .gradio-button.secondary-down{
@@ -511,32 +556,31 @@ table.popup-table .link{
 
 
 /* live preview */
+:root {
+    --progress-value-fill: #0060df;
+    --progress-bar-fill: #b4c0cc;
+    --progress-radius: var(--radius-sm);
+}
+
+.dark {
+    --progress-bar-fill: #424c5b;
+}
+
 .progressDiv{
-    position: absolute;
-    height: 20px;
-    background: #b4c0cc;
-    border-radius: 3px !important;
-    top: -20px;
-}
-
-[id$=_results].mobile{
-    margin-top: 28px;
-}
-
-.dark .progressDiv{
-    background: #424c5b;
+    height: var(--size-5);
+    background: var(--progress-bar-fill);
+    border-radius: var(--progress-radius) !important;
+    overflow: hidden;
 }
 
 .progressDiv .progress{
     width: 0%;
-    height: 20px;
-    background: #0060df;
+    height: 100%;
+    background: var(--progress-value-fill);
     color: white;
     font-weight: bold;
-    line-height: 20px;
-    padding: 0 8px 0 0;
+    line-height: var(--size-5);
     text-align: right;
-    border-radius: 3px;
     overflow: visible;
     white-space: nowrap;
     padding: 0 0.5em;
@@ -554,7 +598,19 @@ table.popup-table .link{
     position: absolute;
     object-fit: contain;
     width: 100%;
-    height: calc(100% - 60px);  /* to match gradio's height */
+    height: 100%;
+}
+
+.gradio-group[id$=_gallery_container] {
+    border-width: var(--block-border-width) !important;
+}
+
+#img2img_results, #txt2img_results, #extras_results {
+    gap: 0.5em;
+}
+
+[id$=_results].mobile{
+    margin-top: 28px;
 }
 
 /* fullscreen popup (ie in Lora's (i) button) */
@@ -583,17 +639,21 @@ table.popup-table .link{
     box-sizing: border-box;
 }
 
-.global-popup-close:before {
-    content: "×";
-}
-
 .global-popup-close{
     position: fixed;
-    right: 0.25em;
-    top: 0;
+    right: 8px;
+    top: 8px;
     cursor: pointer;
     color: white;
-    font-size: 32pt;
+}
+.global-popup-close:hover {
+    color: #999;
+}
+.global-popup-close svg {
+    padding: 8px;
+    box-sizing: content-box;
+    width: 32px;
+    height: 32px;
 }
 
 .global-popup-inner{
@@ -618,11 +678,12 @@ table.popup-table .link{
     -webkit-user-select: none;
     flex-direction: column;
 }
+#lightboxModal svg {
+    display: block;
+}
 
 .modalControls {
     display: flex;
-    gap: 1em;
-    padding: 1em;
     background-color:rgba(0,0,0,0);
     z-index: 1;
     transition: 0.2s ease background-color;
@@ -633,18 +694,23 @@ table.popup-table .link{
 .modalClose {
     margin-left: auto;
 }
-.modalControls span{
+.modalControls a{
     color: white;
     text-shadow: 0px 0px 0.25em black;
     font-size: 35px;
     font-weight: bold;
     cursor: pointer;
-    width: 1em;
 }
 
-.modalControls span:hover, .modalControls span:focus{
+.modalControls a:hover, .modalControls a:focus{
     color: #999;
     text-decoration: none;
+}
+
+.modalControls svg {
+    padding: 16px;
+    width: 32px;
+    height: 32px;
 }
 
 #lightboxModal > img {
@@ -674,11 +740,9 @@ table.popup-table .link{
   top: 50%;
   width: auto;
   padding: 16px;
-  margin-top: -50px;
+  margin-top: -32px;
   color: white;
-  font-weight: bold;
-  font-size: 20px;
-  transition: 0.6s ease;
+  transition: 0.6s ease background-color;
   border-radius: 0 3px 3px 0;
   user-select: none;
   -webkit-user-select: none;
@@ -869,6 +933,7 @@ footer {
 .extra-network-cards .card .button-row{
     display: none;
     position: absolute;
+    margin: 6px;
     color: white;
     right: 0;
     z-index: 1
@@ -877,26 +942,18 @@ footer {
     display: flex;
 }
 
-.extra-network-cards .card .card-button{
-    color: white;
-}
-
-.extra-network-cards .card .metadata-button:before{
-    content: "🛈";
-}
-
-.extra-network-cards .card .edit-button:before{
-    content: "🛠";
-}
-
 .extra-network-cards .card .card-button {
-    text-shadow: 2px 2px 3px black;
-    padding: 0.25em 0.1em;
-    font-size: 200%;
-    width: 1.5em;
+    color: white;
+    filter: drop-shadow(0 0 4px black);
 }
-.extra-network-cards .card .card-button:hover{
-    color: red;
+.extra-network-cards .card .card-button:hover {
+    color: var(--color-accent);
+}
+.extra-network-cards .card .card-button svg {
+    padding: 6px;
+    box-sizing: content-box;
+    width: 24px;
+    height: 24px;
 }
 
 
@@ -1064,6 +1121,10 @@ div.accordions > div.input-accordion.input-accordion-open{
 
 
 /* sticky right hand columns */
+
+.gradio-container {
+    overflow: visible;
+}
 
 #img2img_results, #txt2img_results, #extras_results {
     position: sticky;
