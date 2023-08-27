@@ -16,6 +16,7 @@ from modules import devices, sd_models, shared, sd_samplers, hashes, sd_hijack_c
 from modules.textual_inversion import textual_inversion, logging
 from modules.textual_inversion.learn_schedule import LearnRateScheduler
 from torch import einsum
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts, ExponentialLR
 from torch.nn.init import normal_, xavier_normal_, xavier_uniform_, kaiming_normal_, kaiming_uniform_, zeros_
 
 from collections import deque
@@ -275,6 +276,7 @@ class Hypernetwork:
 
         optimizer_saved_dict = torch.load(self.filename + '.optim', map_location='cpu') if os.path.exists(self.filename + '.optim') else {}
 
+        self.optimizer_name = "AdamW"
         if self.shorthash() == optimizer_saved_dict.get('hash', None):
             self.optimizer_state_dict = optimizer_saved_dict.get('optimizer_state_dict', None)
         else:
@@ -470,9 +472,17 @@ def create_hypernetwork(name, enable_sizes, overwrite_old, layer_structure=None,
     shared.reload_hypernetworks()
 
 
-def train_hypernetwork(id_task, hypernetwork_name, learn_rate, batch_size, gradient_step, data_root, log_directory, training_width, training_height, varsize, steps, clip_grad_mode, clip_grad_value, shuffle_tags, tag_drop_out, latent_sampling_method, use_weight, create_image_every, save_hypernetwork_every, template_filename, preview_from_txt2img, preview_prompt, preview_negative_prompt, preview_steps, preview_sampler_index, preview_cfg_scale, preview_seed, preview_width, preview_height):
+def train_hypernetwork(id_task, hypernetwork_name, learn_rate, batch_size, gradient_step, data_root, log_directory, training_width, training_height, varsize, steps, clip_grad_mode, clip_grad_value, shuffle_tags, tag_drop_out, latent_sampling_method, use_weight, create_image_every, save_hypernetwork_every, template_filename, preview_from_txt2img, preview_prompt, preview_negative_prompt, preview_steps, preview_sampler_index, preview_cfg_scale, preview_seed, preview_width, preview_height, use_beta_scheduler=False, beta_repeat_epoch=4000, min_lr=1e-7, gamma_rate=1):
     from modules import images, processing
-
+    try:
+        beta_repeat_epoch = int(beta_repeat_epoch)
+        assert beta_repeat_epoch > 0, f"Cannot use too small cycle {beta_repeat_epoch}!"
+        min_lr = float(min_lr)
+        assert min_lr < 1, f"Cannot use minimum lr with {min_lr}!"
+        gamma_rate = float(gamma_rate)
+        assert 0 <= gamma_rate <= 1, f"Cannot use gamma rate with {gamma_rate}!"
+    except ValueError:
+        raise RuntimeError("Cannot use advanced LR scheduler settings!")
     save_hypernetwork_every = save_hypernetwork_every or 0
     create_image_every = create_image_every or 0
     template_file = textual_inversion.textual_inversion_templates.get(template_filename, None)
@@ -586,6 +596,8 @@ def train_hypernetwork(id_task, hypernetwork_name, learn_rate, batch_size, gradi
     # previous_mean_loss = 0
     # print("Mean loss of {} elements".format(size))
 
+    scheduler_beta = CosineAnnealingWarmRestarts(optimizer=optimizer, T_0=beta_repeat_epoch, T_mult=1, eta_min=min_lr)
+    scheduler_gamma = ExponentialLR(optimizer=optimizer, gamma=gamma_rate)
     steps_without_grad = 0
 
     last_saved_file = "<none>"
@@ -605,7 +617,11 @@ def train_hypernetwork(id_task, hypernetwork_name, learn_rate, batch_size, gradi
                 # works as a drop_last=True for gradient accumulation
                 if j == max_steps_per_epoch:
                     break
-                scheduler.apply(optimizer, hypernetwork.step)
+                if use_beta_scheduler:
+                    scheduler_beta.step(hypernetwork.step)
+                    scheduler_gamma.step(hypernetwork.step)
+                if not use_beta_scheduler:
+                    scheduler.apply(optimizer, hypernetwork.step)
                 if scheduler.finished:
                     break
                 if shared.state.interrupted:
@@ -680,7 +696,7 @@ def train_hypernetwork(id_task, hypernetwork_name, learn_rate, batch_size, gradi
 
                 textual_inversion.write_loss(log_directory, "hypernetwork_loss.csv", hypernetwork.step, steps_per_epoch, {
                     "loss": f"{loss_step:.7f}",
-                    "learn_rate": scheduler.learn_rate
+                    "learn_rate": scheduler.learn_rate if not use_beta_scheduler else scheduler_gamma.get_last_lr()
                 })
 
                 if images_dir is not None and steps_done % create_image_every == 0:
