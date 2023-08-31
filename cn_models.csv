@@ -6,3 +6,4 @@ control_v11p_sd15_openpose,https://huggingface.co/lllyasviel/ControlNet-v1-1/res
 control_v11p_sd15_scribble,https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_scribble.pth
 control_v11p_sd15_seg,https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_seg.pth
 control_v11p_sd15_softedge,https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_softedge.pth
+control_v11f1e_sd15_tile,https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11f1e_sd15_tile.pth
