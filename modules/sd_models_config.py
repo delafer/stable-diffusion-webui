@@ -54,7 +54,7 @@ def is_using_v_parameterization_for_sd2(state_dict):
 
     with torch.no_grad():
         unet_sd = {k.replace("model.diffusion_model.", ""): v for k, v in state_dict.items() if "model.diffusion_model." in k}
-        unet.load_state_dict(unet_sd, strict=True)
+        unet.load_state_dict(unet_sd, strict=False)
         unet.to(device=device, dtype=torch.float)
 
         test_cond = torch.ones((1, 2, 1024), device=device) * 0.5
