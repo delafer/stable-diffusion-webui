@@ -1289,5 +1289,7 @@
     "customscript/extra_options_section.py/txt2img/Restore faces/visible": true,
     "customscript/extra_options_section.py/txt2img/Restore faces/value": false,
     "customscript/extra_options_section.py/txt2img/Face restoration model/visible": true,
-    "customscript/extra_options_section.py/txt2img/Face restoration model/value": "CodeFormer"
+    "customscript/extra_options_section.py/txt2img/Face restoration model/value": "CodeFormer",
+    "txt2img/\ud83d\udcdd/visible": true,
+    "img2img/\ud83d\udcdd/visible": true
 }
