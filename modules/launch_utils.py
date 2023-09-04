@@ -383,7 +383,7 @@ def prepare_environment():
                 if not is_installed("xformers"):
                     exit(0)
         elif platform.system() == "Linux":
-        run_pip(f"install -U -I --no-deps {xformers_package}", "xformers")
+            run_pip(f"install -U -I --no-deps {xformers_package}", "xformers")
         startup_timer.record("install xformers")
 
     if not is_installed("ngrok") and args.ngrok:
