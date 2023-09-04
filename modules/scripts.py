@@ -587,10 +587,11 @@ class ScriptRunner:
         return self.inputs
 
     def run(self, p, *args):
-        script_index = args[0]
 
-        if script_index == 0:
+        if len(args) == 0 or args[0] == 0:
             return None
+
+        script_index = args[0]
 
         script = self.selectable_scripts[script_index-1]
 
@@ -613,7 +614,7 @@ class ScriptRunner:
                 errors.report(f"Error running before_process: {script.filename}", exc_info=True)
 
     def process(self, p):
-        for script in self.alwayson_scripts:
+        for i, script in enumerate(self.alwayson_scripts):
             try:
                 script_args = p.script_args[script.args_from:script.args_to]
                 script.process(p, *script_args)
