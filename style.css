@@ -567,10 +567,21 @@ table.popup-table .link{
 }
 
 .progressDiv{
+    position: absolute;
     height: var(--size-5);
     background: var(--progress-bar-fill);
     border-radius: var(--progress-radius) !important;
+    top: -20px;
+    width: 100%;
     overflow: hidden;
+}
+
+[id$=_results].mobile{
+    margin-top: 28px;
+}
+
+.dark .progressDiv{
+    background: #424c5b;
 }
 
 .progressDiv .progress{
@@ -684,6 +695,11 @@ table.popup-table .link{
 
 .modalControls {
     display: flex;
+    position: absolute;
+    right: 0px;
+    left: 0px;
+    gap: 1em;
+    padding: 1em;
     background-color:rgba(0,0,0,0);
     z-index: 1;
     transition: 0.2s ease background-color;
@@ -724,13 +740,6 @@ table.popup-table .link{
     height: 100%;
     width: 100%;
     min-height: 0;
-}
-
-#modalImage{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
 }
 
 .modalPrev,
@@ -1066,6 +1075,8 @@ div.block.gradio-box.edit-user-metadata {
 
 .edit-user-metadata .file-metadata th, .edit-user-metadata .file-metadata td{
     padding: 0.3em 1em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .edit-user-metadata .wrap.translucent{
